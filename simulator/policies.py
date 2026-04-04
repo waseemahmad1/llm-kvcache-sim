@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import OrderedDict, deque
-from typing import Deque, Dict, Optional, Set
+from typing import Deque, Optional, Set
 
 
 class EvictionPolicy(ABC):
@@ -61,9 +61,7 @@ class FIFOPolicy(EvictionPolicy):
         self._present: Set[str] = set()
 
     def on_access(self, key: str, time: int) -> None:
-        _ = time
-        _ = key
-        return
+        del key, time
 
     def on_insert(self, key: str, time: int) -> None:
         _ = time
