@@ -2,8 +2,17 @@
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+os.environ.setdefault("MPLCONFIGDIR", str(ROOT / "results" / ".mplconfig"))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -12,9 +21,8 @@ from simulator.workload import generate_long_context_workload
 
 
 def main() -> None:
-    root = Path(__file__).resolve().parents[1]
-    data_dir = root / "results" / "data"
-    fig_dir = root / "results" / "figures"
+    data_dir = ROOT / "results" / "data"
+    fig_dir = ROOT / "results" / "figures"
     data_dir.mkdir(parents=True, exist_ok=True)
     fig_dir.mkdir(parents=True, exist_ok=True)
 
