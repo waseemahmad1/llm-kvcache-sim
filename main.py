@@ -29,12 +29,18 @@ def parse_args() -> argparse.Namespace:
         default=128,
         help="Cache capacity in number of blocks.",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Optional base seed for deterministic default workloads.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    workloads = generate_default_workloads(seed=2026)
+    workloads = generate_default_workloads(seed=args.seed)
     trace = workloads[args.workload]
     result = run_trace(
         trace=trace,

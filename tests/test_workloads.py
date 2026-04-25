@@ -1,8 +1,11 @@
 from simulator.workload import (
+    DEFAULT_WORKLOAD_SEEDS,
     generate_default_workloads,
     generate_long_context_workload,
     generate_multiturn_workload,
     generate_short_prompt_workload,
+    make_default_workload_seeds,
+    summarize_trace,
 )
 
 
@@ -31,3 +34,34 @@ def test_default_workloads_have_expected_keys() -> None:
     workloads = generate_default_workloads(seed=0)
     assert set(workloads) == {"short_prompt", "long_context", "multiturn"}
     assert all(len(trace) > 0 for trace in workloads.values())
+
+
+def test_default_workloads_match_direct_generator_defaults() -> None:
+    workloads = generate_default_workloads(seed=None)
+
+    assert workloads["short_prompt"] == generate_short_prompt_workload(
+        seed=DEFAULT_WORKLOAD_SEEDS["short_prompt"]
+    )
+    assert workloads["long_context"] == generate_long_context_workload(
+        seed=DEFAULT_WORKLOAD_SEEDS["long_context"]
+    )
+    assert workloads["multiturn"] == generate_multiturn_workload(
+        seed=DEFAULT_WORKLOAD_SEEDS["multiturn"]
+    )
+
+
+def test_seed_mapping_is_deterministic() -> None:
+    seeds_a = make_default_workload_seeds(seed=2026)
+    seeds_b = make_default_workload_seeds(seed=2026)
+    seeds_c = make_default_workload_seeds(seed=2027)
+
+    assert seeds_a == seeds_b
+    assert seeds_a != seeds_c
+
+
+def test_summarize_trace_fields() -> None:
+    summary = summarize_trace(["a", "b", "a", "a"])
+    assert summary["total_accesses"] == 4
+    assert summary["unique_blocks"] == 2
+    assert summary["reuse_ratio"] == 0.5
+    assert summary["avg_accesses_per_unique_block"] == 2.0

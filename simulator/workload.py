@@ -3,7 +3,19 @@
 from __future__ import annotations
 
 import random
-from typing import Dict, List
+from typing import Dict, List, Mapping, Sequence
+
+DEFAULT_WORKLOAD_SEEDS: Dict[str, int] = {
+    "short_prompt": 42,
+    "long_context": 123,
+    "multiturn": 7,
+}
+
+_SEED_OFFSETS: Dict[str, int] = {
+    "short_prompt": 11,
+    "long_context": 23,
+    "multiturn": 37,
+}
 
 
 def generate_short_prompt_workload(
@@ -97,10 +109,50 @@ def generate_multiturn_workload(
     return trace
 
 
-def generate_default_workloads(seed: int = 0) -> Dict[str, List[str]]:
-    """Returns a dictionary of default named workloads."""
+def generate_default_workloads(seed: int | None = None) -> Dict[str, List[str]]:
+    """Returns default named workloads with explicit deterministic seeds.
+
+    Notes:
+    - Calling `generate_default_workloads(seed=None)` matches calling each
+      individual workload generator with its default parameters.
+    - Providing a `seed` generates separate deterministic seeds per workload.
+    """
+    seeds = make_default_workload_seeds(seed)
     return {
-        "short_prompt": generate_short_prompt_workload(seed=seed + 1),
-        "long_context": generate_long_context_workload(seed=seed + 2),
-        "multiturn": generate_multiturn_workload(seed=seed + 3),
+        "short_prompt": generate_short_prompt_workload(seed=seeds["short_prompt"]),
+        "long_context": generate_long_context_workload(seed=seeds["long_context"]),
+        "multiturn": generate_multiturn_workload(seed=seeds["multiturn"]),
     }
+
+
+def make_default_workload_seeds(seed: int | None = None) -> Dict[str, int]:
+    """Builds deterministic per-workload seeds from one base seed."""
+    if seed is None:
+        return dict(DEFAULT_WORKLOAD_SEEDS)
+    return {name: seed + offset for name, offset in _SEED_OFFSETS.items()}
+
+
+def summarize_trace(trace: Sequence[str]) -> Dict[str, float]:
+    """Computes lightweight summary statistics for one trace."""
+    total_accesses = len(trace)
+    unique_blocks = len(set(trace))
+    reuse_ratio = ((total_accesses - unique_blocks) / total_accesses) if total_accesses else 0.0
+    avg_access_per_block = (total_accesses / unique_blocks) if unique_blocks else 0.0
+    return {
+        "total_accesses": total_accesses,
+        "unique_blocks": unique_blocks,
+        "reuse_ratio": reuse_ratio,
+        "avg_accesses_per_unique_block": avg_access_per_block,
+    }
+
+
+def summarize_workloads(
+    workloads: Mapping[str, Sequence[str]],
+) -> List[Dict[str, float | str]]:
+    """Returns summary rows for multiple workloads."""
+    rows: List[Dict[str, float | str]] = []
+    for name, trace in workloads.items():
+        row = {"workload": name}
+        row.update(summarize_trace(trace))
+        rows.append(row)
+    return rows
