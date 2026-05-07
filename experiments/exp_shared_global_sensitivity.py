@@ -25,6 +25,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+PLOT_COLORS = {4: "#A78BFA", 8: "#2A9D8F", 16: "#E9C46A"}
+
+
+def _set_plot_style() -> None:
+    plt.style.use("seaborn-v0_8-whitegrid")
+    plt.rcParams.update(
+        {
+            "axes.facecolor": "#f8f9fb",
+            "figure.facecolor": "#ffffff",
+            "grid.color": "#d9dde5",
+            "grid.alpha": 0.45,
+            "axes.edgecolor": "#d0d4dc",
+            "axes.titleweight": "semibold",
+        }
+    )
+
 from simulator.global_cache import SharedGlobalKVCacheSimulator, run_shared_events
 from simulator.global_workload import (
     generate_concurrent_request_traces,
@@ -141,6 +157,7 @@ def _plot_sensitivity(
     policies = ["lru", "fifo"]
     request_counts = sorted(delta_df["num_requests"].unique())
 
+    _set_plot_style()
     fig, axes = plt.subplots(1, 2, figsize=(11.0, 4.8), sharex=True)
     for ax, policy in zip(axes, policies):
         subp = delta_df[delta_df["policy"] == policy]
@@ -152,7 +169,8 @@ def _plot_sensitivity(
                 sub["shared_prefix_reuse_prob"],
                 sub[value_col],
                 marker="o",
-                linewidth=2,
+                linewidth=2.4,
+                color=PLOT_COLORS[request_count],
                 label=f"requests={request_count}",
             )
 

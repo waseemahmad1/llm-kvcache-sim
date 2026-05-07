@@ -19,6 +19,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+PLOT_COLORS = {"local": "#9CA3AF", "shared_global": "#A78BFA"}
+
+
+def _set_plot_style() -> None:
+    plt.style.use("seaborn-v0_8-whitegrid")
+    plt.rcParams.update(
+        {
+            "axes.facecolor": "#f8f9fb",
+            "figure.facecolor": "#ffffff",
+            "grid.color": "#d9dde5",
+            "grid.alpha": 0.45,
+            "axes.edgecolor": "#d0d4dc",
+            "axes.titleweight": "semibold",
+        }
+    )
+
 from simulator.global_cache import SharedGlobalKVCacheSimulator, run_shared_events
 from simulator.global_workload import (
     generate_concurrent_request_traces,
@@ -97,20 +113,19 @@ def _plot_mode_policy_bars(
     x = np.arange(len(policies))
     width = 0.34
 
+    _set_plot_style()
     fig, ax = plt.subplots(figsize=(8.8, 5.6))
     for idx, mode in enumerate(modes):
         sub = df[df["mode"] == mode].set_index("policy").reindex(policies)
         means = sub[mean_col].to_numpy()
-        stds = sub[std_col].to_numpy()
         offset = (idx - 0.5) * width
         ax.bar(
             x + offset,
             means,
             width=width,
-            yerr=stds,
-            capsize=4,
             label=mode.replace("_", " ").title(),
-            alpha=0.9,
+            color=PLOT_COLORS[mode],
+            alpha=0.92,
         )
 
     ax.set_xticks(x)

@@ -18,6 +18,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+PLOT_COLORS = {"lru": "#A78BFA", "fifo": "#2A9D8F"}
+
+
+def _set_plot_style() -> None:
+    plt.style.use("seaborn-v0_8-whitegrid")
+    plt.rcParams.update(
+        {
+            "axes.facecolor": "#f8f9fb",
+            "figure.facecolor": "#ffffff",
+            "grid.color": "#d9dde5",
+            "grid.alpha": 0.45,
+            "axes.edgecolor": "#d0d4dc",
+            "axes.titleweight": "semibold",
+        }
+    )
+
 from simulator.runner import run_trace
 from simulator.workload import (
     generate_default_workloads,
@@ -74,28 +90,27 @@ def _plot_grouped_bars(
 
     x = np.arange(len(workloads))
     width = 0.35
+    _set_plot_style()
     fig, ax = plt.subplots(figsize=(8.5, 5.5))
 
     for idx, policy in enumerate(policies):
         sub = df[df["policy"] == policy].set_index("workload").reindex(workloads)
         means = sub[value_mean_col].to_numpy()
-        stds = sub[value_std_col].to_numpy()
         offset = (idx - 0.5) * width
         ax.bar(
             x + offset,
             means,
             width=width,
             label=policy.upper(),
-            yerr=stds,
-            capsize=4,
-            alpha=0.9,
+            color=PLOT_COLORS[policy],
+            alpha=0.92,
         )
 
     ax.set_xticks(x)
     ax.set_xticklabels(workloads)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
-    ax.grid(axis="y", alpha=0.3)
+    ax.grid(axis="y", alpha=0.4)
     if "rate" in ylabel.lower():
         ax.set_ylim(0.0, 1.0)
     ax.legend(title="Policy")

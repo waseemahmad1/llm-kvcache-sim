@@ -17,6 +17,22 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
+PLOT_COLORS = {"lru": "#A78BFA", "fifo": "#2A9D8F"}
+
+
+def _set_plot_style() -> None:
+    plt.style.use("seaborn-v0_8-whitegrid")
+    plt.rcParams.update(
+        {
+            "axes.facecolor": "#f8f9fb",
+            "figure.facecolor": "#ffffff",
+            "grid.color": "#d9dde5",
+            "grid.alpha": 0.45,
+            "axes.edgecolor": "#d0d4dc",
+            "axes.titleweight": "semibold",
+        }
+    )
+
 from simulator.runner import run_trace
 from simulator.workload import (
     generate_long_context_workload,
@@ -115,16 +131,17 @@ def main() -> None:
     workload_agg_df.to_csv(workload_agg_csv_path, index=False)
 
     fig_path = fig_dir / "cache_size_sweep_hit_rate.png"
+    _set_plot_style()
     fig, ax = plt.subplots(figsize=(8.5, 5.5))
     for policy in policies:
         sub = agg_df[agg_df["policy"] == policy]
-        ax.errorbar(
+        ax.plot(
             sub["capacity"],
             sub["hit_rate_mean"],
-            yerr=sub["hit_rate_std"],
             marker="o",
-            capsize=4,
-            linewidth=2,
+            linewidth=2.5,
+            markersize=6,
+            color=PLOT_COLORS[policy],
             label=policy.upper(),
         )
 

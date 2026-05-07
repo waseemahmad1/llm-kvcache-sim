@@ -24,6 +24,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+PLOT_COLORS = {"fifo": "#2A9D8F", "lru": "#A78BFA", "adaptive": "#6D28D9"}
+
+
+def _set_plot_style() -> None:
+    plt.style.use("seaborn-v0_8-whitegrid")
+    plt.rcParams.update(
+        {
+            "axes.facecolor": "#f8f9fb",
+            "figure.facecolor": "#ffffff",
+            "grid.color": "#d9dde5",
+            "grid.alpha": 0.45,
+            "axes.edgecolor": "#d0d4dc",
+            "axes.titleweight": "semibold",
+        }
+    )
+
 from simulator.global_cache import SharedGlobalKVCacheSimulator
 from simulator.global_workload import generate_shifted_global_events, summarize_events
 
@@ -69,18 +85,19 @@ def _plot_overall_vs_capacity(
     shift_levels = ["moderate", "hard"]
     policies = ["fifo", "lru", "adaptive"]
 
+    _set_plot_style()
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 5.0), sharey=True)
     for ax, shift_level in zip(axes, shift_levels):
         sub_shift = overall[overall["shift_level"] == shift_level]
         for policy in policies:
             sub = sub_shift[sub_shift["policy"] == policy].sort_values("capacity")
-            ax.errorbar(
+            ax.plot(
                 sub["capacity"],
                 sub[value_mean_col],
-                yerr=sub[value_std_col],
                 marker="o",
-                linewidth=2,
-                capsize=4,
+                linewidth=2.5,
+                markersize=6,
+                color=PLOT_COLORS[policy],
                 label=policy.upper(),
             )
 
@@ -114,19 +131,18 @@ def _plot_phase_bars(
     x = np.arange(len(phases))
     width = 0.25
 
+    _set_plot_style()
     fig, ax = plt.subplots(figsize=(9.0, 5.8))
     for idx, policy in enumerate(policies):
         sub = subset[subset["policy"] == policy].set_index("phase").reindex(phases)
         means = sub["hit_rate_mean"].to_numpy()
-        stds = sub["hit_rate_std"].to_numpy()
         offset = (idx - 1) * width
         ax.bar(
             x + offset,
             means,
             width=width,
-            yerr=stds,
-            capsize=4,
-            alpha=0.9,
+            alpha=0.92,
+            color=PLOT_COLORS[policy],
             label=policy.upper(),
         )
 
